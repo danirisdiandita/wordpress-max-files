@@ -1,0 +1,56 @@
+version: "3"
+
+services:
+  # Database
+  db-infidea:
+    image: mysql:5.7
+    volumes:
+      - db_data:/var/lib/mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: wordpress
+      MYSQL_USER: wordpress
+      MYSQL_PASSWORD: wordpress
+    networks:
+      - default 
+  phpmyadmin:
+    depends_on:
+      - db-infidea 
+    image: phpmyadmin/phpmyadmin
+    restart: always
+    # ports:
+    #   - "2008:80"
+    environment:
+      PMA_HOST: db-infidea 
+      MYSQL_ROOT_PASSWORD: password
+    networks:
+      - default 
+  wordpress:
+    depends_on:
+      - db-infidea 
+    image: wordpress:latest
+    # ports:
+    #   - "2007:80"
+    restart: always
+    volumes:
+      - "./:/var/www/html"
+      - "./docker-uploads.ini:/usr/local/etc/php/conf.d/docker-uploads.ini"
+      - "./custom_configs:/usr/local/etc/php/php.ini-development"
+      - "./custom_configs:/usr/local/etc/php/php.ini-production"
+    environment:
+      WORDPRESS_DB_HOST: db-infidea:3306
+      WORDPRESS_DB_USER: wordpress
+      WORDPRESS_DB_PASSWORD: wordpress
+    networks:
+      - default 
+networks:
+  infidea:
+
+networks:
+  default:
+    external:
+      name: nginxproxymanager_default
+
+volumes:
+  db_data:
